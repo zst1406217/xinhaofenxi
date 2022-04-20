@@ -1,0 +1,441 @@
+\documentclass[a4paper,12pt]{ctexart}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor} 
+\usepackage{graphicx}
+\usepackage{booktabs} %绘制表格
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{abstract}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{abstract}
+\usepackage{makecell}
+\usepackage{float}
+%防止表格乱跑：[H]
+\usepackage{listings}
+%添加代码块
+\usepackage{fancyhdr} 
+%导入fancyhdr包
+\usepackage{threeparttable}
+%给代码添加注释
+
+\lstset{
+ numbers=left, %设置行号位置
+ numberstyle=\tiny, %设置行号大小
+ keywordstyle=\color{blue}, %设置关键字颜色
+ commentstyle=\color[cmyk]{1,0,1,0}, %设置注释颜色
+ escapeinside=``, %逃逸字符(1左面的键)，用于显示中文
+ breaklines, %自动折行
+ extendedchars=false, %解决代码跨页时，章节标题，页眉等汉字不显示的问题
+ xleftmargin=1em,xrightmargin=1em, aboveskip=1em, %设置边距
+ tabsize=4, %设置tab空格数
+ showspaces=false %不显示空格
+}
+
+\lstset{
+ columns=fixed,       
+ numbers=left,                            % 在左侧显示行号
+ numberstyle=\tiny\color{gray},           % 设定行号格式
+ frame=none,                              % 不显示背景边框
+ backgroundcolor=\color[RGB]{245,245,244},% 设定背景颜色
+ keywordstyle=\color[RGB]{40,40,255},     % 设定关键字颜色
+ numberstyle=\footnotesize\color{darkgray},           
+ commentstyle=\it\color[RGB]{0,96,96},    % 设置代码注释的格式
+ stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},   
+            % 设置字符串格式
+ showstringspaces=false,                  % 不显示字符串中的空格
+ language=matlab,                         % 设置语言
+}
+
+\setlength{\parindent}{2em} %2em代表首行缩进两个字符
+\pagestyle{headings}
+\pagestyle{fancy}
+% 页眉设置
+\fancyhead{} % 初始化页眉
+\fancyhead[L]{Matlab仿真实验1}
+\fancyhead[R]{3200104845}
+\fancyhead[C]{朱少廷}
+\fancyfoot{} % 初始化页脚
+\fancyfoot[L]{}
+\pagenumbering{Alph}%设置页码格式
+\renewcommand{\headrulewidth}{1.5pt}%分隔线宽度4磅
+
+\setlength{\absleftindent}{0pt}
+\setlength{\absrightindent}{0pt}
+
+
+\graphicspath{{pictures/}}
+
+% Set page size and margins
+\geometry{a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm}
+
+\begin{document}
+\centerline{\Large{\textbf{Matlab仿真实验1}}}
+\leftline{\textbf{问题叙述：}}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{上机3/timu.png}
+\end{figure}
+
+\begin{itemize}
+    \item 对$n=2,6,10$分别计算$A$的条件数，并判断方程组$AX=b$是否为病态方程
+          组？(可选用任何一种范数）
+    \item 对$n=6$，采用原始Guass消去法、Guass列主元消去法、Gauss-Seidel
+          迭代法求解方程组$AX=b$。（迭代法初值$X_0=[0,0,0,0,0,0]$)
+    \item 若$A$的最后一个元素有扰动$10^{-4}$，再求解结果；计算扰动相对误差与
+          解的相对误差，分析它们与条件数的关系。
+\end{itemize}
+
+\leftline{\textbf{问题解决过程：}}
+\leftline{第一问：}
+\begin{lstlisting}
+%% problem1
+clc,clear
+cond(hilb(2))
+cond(hilb(6))
+cond(hilb(10))
+\end{lstlisting}
+使用cond()函数通过“2”范数计算谱条件数。
+\begin{table}[H]
+    \centering
+    \caption{第一问}
+    \begin{tabular}{lll}
+        \hline
+        阶数 & 条件数                & 是否为病态方程 \\ \hline
+        1    & 19.281470067903971    & 否             \\
+        2    & 1.495105864141869e+07 & 是             \\
+        3    & 1.602490962516758e+13 & 是             \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\leftline{第二问：}
+\begin{figure}[H]
+    \centering
+    \caption{原始Gauss消去法原理}
+    \includegraphics[width=13cm]{上机3/yuanshi.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{列主元Gauss消去法原理}
+    \includegraphics[width=13cm]{上机3/liezhuyuan.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \caption{Gauss-Seide迭代法原理}
+    \includegraphics[width=13cm]{上机3/diedai.png}
+\end{figure}
+\begin{lstlisting}
+% problem2（设置断点调试）
+clc,clear
+n=6;
+a=hilb(n);
+b=ones(n,1);
+x_real=invhilb(6)*b;
+
+%% 原始Gauss消去法
+a=hilb(n);
+b=ones(n,1);
+% 消元
+for k=1:n-1
+    for i=k+1:n
+        factor=a(i,k)/a(k,k);
+        for j=k+1:n
+            a(i,j)=a(i,j)-factor*a(k,j);
+        end
+        b(i)=b(i)-factor*b(k);
+    end
+end
+% 回带
+x(n)=b(n)/a(n,n);
+for i=n-1:-1:1
+    sum=b(i);
+    for j=i+1:n
+        sum=sum-a(i,j)*x(j);
+    end
+    x(i)=sum/a(i,i);
+end
+
+%% Guass列主元消去法
+a=hilb(n);
+b=ones(n,1);
+% 消元
+for i=1:n-1
+    max=abs(a(i,i));
+    m=i;
+    for j=i+1:n 
+        if max<abs(a(j,i))
+            max=abs(a(j,i));
+            m=j; % 寻找列最大值
+        end
+    end
+    if(m~=i)
+        for k=i:n
+            c(k)=a(i,k);
+            a(i,k)=a(m,k);
+            a(m,k)=c(k);
+        end
+        d=b(i);
+        b(i)=b(m);
+        b(m)=d;
+    end
+    for k=i+1:n
+        factor=a(k,i)/a(i,i);
+        for j=i+1:n
+            a(k,j)=a(k,j)-a(i,j)*factor;
+        end
+        b(k)=b(k)-b(i)*factor;
+    end
+end
+% 回带
+x(n)=b(n)/a(n,n);
+for i=n-1:-1:1
+    sum=b(i);
+    for j=i+1:n
+        sum=sum-a(i,j)*x(j);
+    end
+    x(i)=sum/a(i,i);
+end
+
+%% Gauss-Seide迭代法
+clear max;
+a=hilb(n);
+b=ones(n,1);
+x0=ones(n,1);
+x=zeros(n,1);% 初值全为0
+k=0;
+% 第一次迭代
+for i=1:n
+    x(i)=b(i);
+    for j=1:i-1
+        x(i)=x(i)-a(i,j)*x(j);
+    end
+    for j=i+1:n
+        x(i)=x(i)-a(i,j)*x0(j);
+    end
+    x(i)=x(i)/a(i,i);
+end
+% 计算相对误差
+for i=1:n
+    ea(i)=abs((x(i)-x0(i))/x(i));
+end
+% 迭代
+while max(ea)>5e-11
+    k=k+1;
+    x0=x;
+    for i=1:n
+        x(i)=b(i);
+        for j=1:i-1
+            x(i)=x(i)-a(i,j)*x(j);
+        end
+        for j=i+1:n
+            x(i)=x(i)-a(i,j)*x0(j);
+        end
+        x(i)=x(i)/a(i,i);
+    end
+    for i=1:n
+        ea(i)=abs((x(i)-x0(i))/x(i));
+    end
+end
+\end{lstlisting}
+利用$x=invhild(6)*b$可以算出解的真值
+$[-6,210,-1680,,5040,-6300,2772]$，并使各算法与之比较。
+
+\begin{table}[H]
+    \centering
+    \caption{三种方法的解}
+    \begin{tabular}{llll}
+        \hline
+        $x_i$ & 原始Guass消去法        & Guass列主元消去法      & Gauss-Seidel迭代法     \\ \hline
+        1     & -6.000000000905970     & -6.000000001120498     & -5.999823400761557     \\
+        2     & 2.100000000270427e+02  & 2.100000000329495e+02  & 2.099950627154710e+02  \\
+        3     & -1.680000000187955e+03 & -1.680000000226683e+03 & -1.679967067813866e+03 \\
+        4     & 5.040000000497923e+03  & 5.040000000596050e+03  & 5.039915227977793e+03  \\
+        5     & -6.300000000556981e+03 & -6.300000000662943e+03 & -6.299907173971328e+03 \\
+        6     & 2.772000000221711e+03  & 2.772000000262698e+03  & 2.771963654686595e+03  \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{三种方法的解的与真值误差}
+    \begin{tabular}{llll}
+        \hline
+        $x_i$ & 原始Guass消去法       & Guass列主元消去法     & Gauss-Seidel迭代法    \\ \hline
+        1     & 1.509950683005930e-10 & 1.867495787640413e-10 & 2.943320640724778e-05 \\
+        2     & 1.287749758679032e-10 & 1.569023175934923e-10 & 2.351087870969033e-05 \\
+        3     & 1.118779989285810e-10 & 1.349304414231613e-10 & 1.960249174647374e-05 \\
+        4     & 9.879422289068027e-11 & 1.182639058993479e-10 & 1.681984567604949e-05 \\
+        5     & 8.840967013153233e-11 & 1.052291144520813e-10 & 1.473429026537772e-05 \\
+        6     & 7.998238146825173e-11 & 9.476856048343888e-11 & 1.311158492245166e-05 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\leftline{第三问：}
+
+\begin{lstlisting}
+% problem3（设置断点调试）
+clc,clear
+n=6;
+a=hilb(n);
+b=ones(n,1);
+x_real=invhilb(n)*b;
+cond_value=cond(a);
+
+%% Guass列主元消去法
+a=hilb(n);
+a(n,n)=a(n,n)+1e-4;
+b=ones(n,1);
+x=zeros(n,1);
+% 消元
+for i=1:n-1
+    max=abs(a(i,i));
+    m=i;
+    for j=i+1:n 
+        if max<abs(a(j,i))
+            max=abs(a(j,i));
+            m=j; % 寻找列最大值
+        end
+    end
+    if(m~=i)
+        for k=i:n
+            c(k)=a(i,k);
+            a(i,k)=a(m,k);
+            a(m,k)=c(k);
+        end
+        d=b(i);
+        b(i)=b(m);
+        b(m)=d;
+    end
+    for k=i+1:n
+        factor=a(k,i)/a(i,i);
+        for j=i+1:n
+            a(k,j)=a(k,j)-a(i,j)*factor;
+        end
+        b(k)=b(k)-b(i)*factor;
+    end
+end
+% 回带
+x(n)=b(n)/a(n,n);
+for i=n-1:-1:1
+    sum=b(i);
+    for j=i+1:n
+        sum=sum-a(i,j)*x(j);
+    end
+    x(i)=sum/a(i,i);
+end
+
+%% 误差分析
+a=hilb(n);
+a0=hilb(n);
+a0(n,n)=a0(n,n)+1e-4;
+b=ones(n,1);
+r=b-a*x;
+delta_x=x-x_real;
+delta_a=a0-a;
+ea_x=norm(delta_x)/norm(x_real);% 求解的相对误差
+ea_a=norm(delta_a)/norm(a);% 求扰动相对误差
+norm(delta_x)/norm(x_real+delta_x)
+norm(a)*norm(inv(a))*ea_a
+1/cond_value*norm(r)/norm(b)
+cond_value*norm(r)/norm(b)    
+\end{lstlisting}
+
+\begin{table}[H]
+    \centering
+    \caption{n=6有扰动增加1e-4时三种方法的解}
+    \begin{tabular}{llll}
+        \hline
+        $x_i$ & 原始Guass消去法        & Guass列主元消去法      & Gauss-Seidel迭代法     \\ \hline
+        1     & 4.844752054912968      & 4.844752054919485      & 4.844746909731582      \\
+        2     & -1.153425616474695e+02 & -1.153425616476113e+02 & -1.153424639791794e+02 \\
+        3     & 5.973979315325770e+02  & 5.973979315332839e+02  & 5.973974949823572e+02  \\
+        4     & -1.033061150754008e+03 & -1.033061150755301e+03 & -1.033060438785369e+03 \\
+        5     & 5.321937945986081e+02  & 5.321937945995361e+02  & 5.321933651002695e+02  \\
+        6     & 39.122482160458030     & 39.122482160256840     & 39.122540571130420     \\
+        \hline
+    \end{tabular}
+\end{table}
+我发现在有扰动的情况下，三种方法解出的结果近似相同，因此以Guass列主元消去法为例
+讨论相对误差与条件数的关系。
+
+\begin{table}[H]
+    \centering
+    \caption{解相对误差与扰动相对误差}
+    \begin{tabular}{lll}
+        \hline
+        扰动情况   & 扰动相对误差$\frac{||\Delta x||}{||x||}$ & 解相对误差$\frac{||\Delta x||}{||x||}$ \\ \hline
+        n=2且增加  & 0.001271266686112                        & 3.140184917367550e-16                  \\
+        n=2且减少  & 0.001274321391806                        & 3.140184917367550e-16                  \\
+        n=6且增加  & 1.128446717557506                        & 1.100590348649673e-10                  \\
+        n=6且减少  & 1.161224483903645                        & 1.100590348649673e-10                  \\
+        n=10且增加 & 1.156077914610030                        & 9.938069341139686e-05                  \\
+        n=10且减少 & 1.156078429411258                        & 9.938069341139686e-05                  \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% \begin{equation}
+%     \text{记：}p_1=\frac{||\Delta x||}{||x+\Delta x||};p_2=||A||||A^{-1}||\frac{||\Delta A||}{||A||};
+% \end{equation}
+% \begin{table}[H]
+%     \centering
+%     \caption{相对误差界估计}
+%     \begin{tabular}{lll}
+%         \hline
+%         扰动情况   & $p_1$             & $p_2$                 \\ \hline
+%         n=2且增加  & 0.001272868557627 & 0.001521110255093     \\
+%         n=2且减少  & 0.001272715822570 & 0.001521110255093     \\
+%         n=6且增加  & 7.478640344399693 & 9.235320244930380e+02 \\
+%         n=6且减少  & 6.446826688574537 & 9.235320244930380e+02 \\
+%         n=10且增加 & 6.903172905248144 & 9.146883026192656e+08 \\
+%         n=10且减少 & 6.903156000614807 & 9.146883026192656e+08 \\
+%         \hline
+%     \end{tabular}
+% \end{table}
+
+
+% \begin{equation}
+%     \text{记：}t_1=\frac{1}{cond(A)}\frac{||r(\tilde{x})||}{||b||};t_2=\frac{||\Delta x||}{||x||};t_3=cond(A)\frac{||r(\tilde{x})||}{||b||}
+% \end{equation}
+% \begin{table}[H]
+%     \centering
+%     \caption{相对误差与条件值估计}
+%     \begin{tabular}{llll}
+%         \hline
+%         扰动情况   & $t_1$                 & $t_2$             & $t_3$                 \\ \hline
+%         n=2且增加  & 2.197734719111084e-05 & 0.001271266686112 & 0.008170630185531     \\
+%         n=2且减少  & 2.203015619517365e-05 & 0.001274321391806 & 0.008190263257662     \\
+%         n=6且增加  & 1.068264585383682e-10 & 1.128446717557506 & 2.387936208751163e+04 \\
+%         n=6且减少  & 1.099294253357533e-10 & 1.161224483903645 & 2.457298114700402e+04 \\
+%         n=10且增加 & 4.058786463060829e-19 & 1.156077914610030 & 1.042287144159418e+08 \\
+%         n=10且减少 & 4.058789081313809e-19 & 1.156078429411258 & 1.042287816520836e+08 \\
+%         \hline
+%     \end{tabular}
+% \end{table}
+
+\leftline{\textbf{小结：}}
+\par
+对于第一问，病态方程的一大重要判定条件为条件数是否远大于1。经过计算，
+n=2时为非病态方程，n=6和10时为病态方程。这一点可以从第三问中明显地体现出。
+当存在扰动时，n=2的方程解相对误差很小，而n=6和10时相对误差很大。
+\par
+对于第二问，我使用了三种方法对方程进行了求解，迭代法的相对误差限$\varepsilon_t$设为
+5e-11。从结果中可以看出，原始的Guass消去法和Guass列主元消去法误差较小，迭代法误差较大。
+这是因为迭代法的误差限设的较大，但即使如此仍然迭代了650万次才收敛，因此迭代法不适合本题。
+\par
+对于第三问，我计算了n在2，6，10时有扰动时的结果，可以看出n=2时扰动相对误差
+较小，而n=6，10时扰动相对误差较大。这是因为n=2时条件数较小，为非病态方程，当
+A存在部分扰动时对结果影响不大；而n=6和10时条件数较大，为病态方程
+，A在存在扰动时对解产生巨大影响。
+
+\end{document}
